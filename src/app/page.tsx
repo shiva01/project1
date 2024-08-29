@@ -1,10 +1,40 @@
+"use client"
 import { Component } from '../components/component';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import React from 'react'
+import { WagmiProvider } from 'wagmi'
+// import { config } from './config'
+import {
+  getDefaultConfig,
+  RainbowKitProvider,
+} from '@rainbow-me/rainbowkit';
+import {
+  mainnet,
+  polygon,
+  optimism,
+  arbitrum,
+  base,
+} from 'wagmi/chains';
+const config1 = getDefaultConfig({
+  appName: 'TokenNews',
+  projectId: '050fb102ca80a9399c33be00cee53dcd',
+  chains: [mainnet, polygon, optimism, arbitrum, base],
+  ssr: true, // If your dApp uses server side rendering (SSR)
+});
+const queryClient = new QueryClient()
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <Component />
-
+        <React.StrictMode>
+    <WagmiProvider config={config1}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
+        <Component />
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+    </React.StrictMode>,
     </main>
   );
 }

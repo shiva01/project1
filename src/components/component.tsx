@@ -17,48 +17,149 @@ To read more about using these font, please visit the Next.js documentation:
 - App Directory: https://nextjs.org/docs/app/building-your-application/optimizing/fonts
 - Pages Directory: https://nextjs.org/docs/pages/building-your-application/optimizing/fonts
 **/
+
+import '@rainbow-me/rainbowkit/styles.css';
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
-// import { useEffect, useState, useRef } from 'react'
-import '@rainbow-me/rainbowkit/styles.css';
-
+import { useAccount, useConnect } from 'wagmi'
+import { useEffect, useState, useRef } from 'react'
 import {
-  getDefaultConfig,
-  RainbowKitProvider,
   ConnectButton
 } from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
-import {
-  mainnet,
-  polygon,
-  optimism,
-  arbitrum,
-  base,
-} from 'wagmi/chains';
-import {
-  QueryClientProvider,
-  QueryClient,
-} from "@tanstack/react-query";
 
 // step1: import the groupfi-chatbox-sdk package.
 import ChatboxSDK from 'groupfi-chatbox-sdk'
 // step2: import the groupfi-chatbox-sdk style file.
 import 'groupfi-chatbox-sdk/dist/esm/assets/style.css'
+import { scrapeData, FeedItem } from '../lib/scraper';
 
-
+console.log(process.env.NEXT_PUBLIC_GROUPID_LIST)
 
 export function Component() {
-  const config = getDefaultConfig({
-    appName: 'TokenNews',
-    projectId: '050fb102ca80a9399c33be00cee53dcd',
-    chains: [mainnet, polygon, optimism, arbitrum, base],
-    ssr: true, // If your dApp uses server side rendering (SSR)
-  });
-  const queryClient = new QueryClient();
+
+  // 接入chatbox 
+  const account = useAccount()
+  const {status, error } = useConnect()
+  // step3: create a variable to track if the chatbox is ready.
+  const [isChatboxReady, setIsChatboxReady] = useState(false)
+
+  // step4: create a variable to store the wallet provider.
+  const [walletProvider, setWalletProvider] = useState<
+    undefined | null | unknown
+  >(undefined)
+
+  // step5: since getting provider is an asynchronous operation,
+  // use a variable to store whether the provider is currently being getted.
+  const isGettingWalletProvider = useRef(false)
+ // Handle chatbox ready event
+  useEffect(() => {
+    console.log("useEffect triggered")
+    console.log("Component rendered");
+
+    const handleChatboxReady = () => {
+      setIsChatboxReady(true)
+      console.log("handleChatboxReady rendered");
+
+      let recommendGroupIdList: string[] = []
+      console.log("recommendGroupIdList rendered");
+
+        if (process.env.NEXT_PUBLIC_GROUPID_LIST) {
+          recommendGroupIdList = JSON.parse(process.env.NEXT_PUBLIC_GROUPID_LIST)
+          } 
+          console.log("params",recommendGroupIdList)
+
+      // step6: Once the chatbox is ready, set the recommended groups here.
+      ChatboxSDK.request({
+        method: 'setGroups',
+        params: {
+          includes: recommendGroupIdList.map((groupId) => ({ groupId }))
+        }
+      })
+
+    }
+
+    // Listen to chatbox ready event
+    ChatboxSDK.events.on('chatbox-ready', handleChatboxReady)
+
+    return () => {
+      ChatboxSDK.events.off('chatbox-ready', handleChatboxReady)
+    }
+  }, [])
+
+  // Try get wallet Provider from account connector
+  useEffect(() => {
+    const asyncTryGetWalletProvider = async () => {
+      try {
+        if (account.connector === undefined) {
+          setWalletProvider(null)
+        } else if (
+          Object.hasOwnProperty.bind(account.connector)('getProvider')
+        ) {
+          isGettingWalletProvider.current = true
+          const walletProvider = await account.connector?.getProvider()
+          setWalletProvider(walletProvider)
+          isGettingWalletProvider.current = false
+        }
+      } catch (error) {
+        console.error('Failed to get wallet provider', error)
+      }
+    }
+    asyncTryGetWalletProvider()
+  }, [account.connector])
+
+  // Call the loadChatbox api or the processWallet api based on the walletProvider.
+  useEffect(() => {
+    if (walletProvider === undefined) {
+      return
+    }
+
+    const isWalletConnected = walletProvider !== null
+
+    // step7: execute loadChatbox api or processWallet api
+    // (1) If chatbox is not ready, execute the loadChatbox api.
+    if (!isChatboxReady) {
+      ChatboxSDK.loadChatbox({
+        isWalletConnected,
+        provider: walletProvider ?? undefined
+      })
+    } else {
+      // (2) If chatbox is ready, execute processWallet api
+      ChatboxSDK.processWallet({
+        isWalletConnected,
+        provider: walletProvider ?? undefined
+      })
+    }
+  }, [walletProvider, isChatboxReady])
+
+  useEffect(() => {
+    if (
+      !isGettingWalletProvider.current &&
+      walletProvider &&
+      isChatboxReady &&
+      account.address !== undefined
+    ) {
+      // step7: specify the address for the chatbox to load.
+      ChatboxSDK.processAccount({
+        account: account.address
+      })
+    }
+  }, [isChatboxReady, walletProvider, account.address])
+
+  // 将爬取的数据传输至页面
+
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+
+    useEffect(() => {
+        async function fetchData() {
+            const items = await scrapeData();
+            setFeedItems(items);
+        }
+        fetchData();
+    }, []);
+
+
   return (
 
     <div className="flex h-screen w-full flex-col">
@@ -68,15 +169,11 @@ export function Component() {
           <h1 className="text-xl font-bold">Token News</h1>
         </div>
         <div className="flex items-center gap-2">
-        <WagmiProvider config={config}>
-          <QueryClientProvider client={queryClient}>
-            <RainbowKitProvider>
+
         <Button className="flex items-center gap-2">
           <ConnectButton />
             </Button>
-            </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>  
+
         </div>
       </header>
       <div className="flex-1 flex">
@@ -95,14 +192,6 @@ export function Component() {
           <div className="bg-muted/20 border-b p-4 flex items-center justify-between">
             <h2 className="text-lg font-medium">Latest News</h2>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon">
-                <FilterIcon className="h-5 w-5" />
-                <span className="sr-only">Filter</span>
-              </Button>
-              <Button variant="ghost" size="icon">
-                <ListOrderedIcon className="h-5 w-5" />
-                <span className="sr-only">Sort</span>
-              </Button>
             </div>
           </div>
           <div className="flex-1 overflow-auto p-4 grid gap-4">
@@ -112,66 +201,36 @@ export function Component() {
                   <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <p className="font-medium">John Doe</p>
-                  <p className="text-sm text-muted-foreground">2 hours ago</p>
-                </div>
-                <Button variant="ghost" size="icon">
-                  <MoveHorizontalIcon className="h-5 w-5" />
-                  <span className="sr-only">More</span>
-                </Button>
               </CardHeader>
-              <CardContent className="p-4">
-                <h3 className="text-lg font-medium mb-2">New AI-powered chatbot revolutionizes customer service</h3>
-                <p className="text-muted-foreground">
-                  Our latest AI-powered chatbot is transforming the customer service industry with its advanced natural
-                  language processing capabilities and personalized responses.
-                </p>
-              </CardContent>
-              <CardFooter className="flex items-center justify-between p-4 border-t">
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon">
-                    <HeartIcon className="h-5 w-5" />
-                    <span className="sr-only">Like</span>
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <MessageCircleIcon className="h-5 w-5" />
-                    <span className="sr-only">Comment</span>
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <ShareIcon className="h-5 w-5" />
-                    <span className="sr-only">Share</span>
-                  </Button>
+              <CardContent>
+              (
+    <div className="bg-gray-900 text-white p-4 space-y-4">
+      <div className="flex space-x-4">
+        <Button variant="default" className="bg-blue-600 text-white">
+          精选
+        </Button>
+        <Button variant="ghost" className="text-gray-400">
+          快讯
+        </Button>
+      </div>
+      <div className="space-y-4">
+        <Card className="bg-gray-800 p-4 space-y-2">
+          <div className="flex items-center space-x-2">
+            <NewspaperIcon className="w-6 h-6 text-blue-500" />
+            <div>
+              {feedItems.map(item => (
+                <div key={item.uuid}>
+                  <h2 className="text-lg font-semibold">{item.title}</h2>
+                  <p className="text-sm text-gray-400">{item.abstract}</p>
+                  {/* 添加更多你想展示的数据 */}
+                  <span className="text-sm text-gray-400">链捕手 • 9 分钟前</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon">
-                    <BookmarkIcon className="h-5 w-5" />
-                    <span className="sr-only">Save</span>
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-            <Card className="bg-background border rounded-lg overflow-hidden">
-              <CardHeader className="flex items-center gap-4 p-4 border-b">
-                <Avatar className="w-10 h-10 border">
-                  <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
-                  <AvatarFallback>SA</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="font-medium">Sarah Anderson</p>
-                  <p className="text-sm text-muted-foreground">1 day ago</p>
-                </div>
-                <Button variant="ghost" size="icon">
-                  <MoveHorizontalIcon className="h-5 w-5" />
-                  <span className="sr-only">More</span>
-                </Button>
-              </CardHeader>
-              <CardContent className="p-4">
-                <h3 className="text-lg font-medium mb-2">Sustainable fashion trends to watch in 2023</h3>
-                <p className="text-muted-foreground">
-                  From recycled materials to upcycled designs, the fashion industry is embracing sustainability like
-                  never before. Check out the top trends to look out for this year.
-                </p>
+              ))}
+            </div>
+            </div>
+          </Card>
+        </div>
+    </div>
               </CardContent>
               <CardFooter className="flex items-center justify-between p-4 border-t">
                 <div className="flex items-center gap-2">
@@ -200,49 +259,9 @@ export function Component() {
         </div>
         <div className="bg-muted/20 border-l p-4 w-64 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium">Chat</h2>
-            <Button variant="ghost" size="icon">
-              <PlusIcon className="h-5 w-5" />
-              <span className="sr-only">New Chat</span>
-            </Button>
           </div>
-          <ScrollArea className="flex-1">
-            <div className="grid gap-4">
-              <Link href="#" className="flex items-center gap-4 p-2 rounded-md hover:bg-muted" prefetch={false}>
-                <Avatar className="w-10 h-10 border">
-                  <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="font-medium">John Doe</p>
-                  <p className="text-sm text-muted-foreground">Hey, how's it going?</p>
-                </div>
-                <div className="text-xs text-muted-foreground">2h</div>
-              </Link>
-              <Link href="#" className="flex items-center gap-4 p-2 rounded-md hover:bg-muted" prefetch={false}>
-                <Avatar className="w-10 h-10 border">
-                  <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
-                  <AvatarFallback>SA</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="font-medium">Sarah Anderson</p>
-                  <p className="text-sm text-muted-foreground">Did you see the latest news?</p>
-                </div>
-                <div className="text-xs text-muted-foreground">1d</div>
-              </Link>
-              <Link href="#" className="flex items-center gap-4 p-2 rounded-md hover:bg-muted" prefetch={false}>
-                <Avatar className="w-10 h-10 border">
-                  <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
-                  <AvatarFallback>MJ</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="font-medium">Michael Johnson</p>
-                  <p className="text-sm text-muted-foreground">Let's discuss the project later.</p>
-                </div>
-                <div className="text-xs text-muted-foreground">3d</div>
-              </Link>
-            </div>
-          </ScrollArea>
+          <div>{status}</div>
+          <div>{error?.message}</div>
         </div>
       </div>
     </div>

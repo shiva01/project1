@@ -2,6 +2,7 @@
   "name": "tokennews",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,27 +16,37 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@rainbow-me/rainbowkit": "^2.1.5",
     "@tanstack/react-query": "^5.52.2",
+    "@types/node-fetch": "^2.6.11",
+    "axios": "^1.7.5",
+    "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "encoding": "^0.1.13",
     "groupfi-chatbox-sdk": "^0.0.5",
+    "isomorphic-fetch": "^3.0.0",
     "lucide-react": "^0.436.0",
     "next": "14.2.6",
+    "node-fetch": "^3.3.2",
+    "opmlparser": "^0.8.0",
+    "pino-pretty": "^11.2.2",
     "react": "^18",
     "react-dom": "^18",
+    "rss": "^1.2.2",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "viem": "^2.20.0",
+    "tsx": "^4.19.0",
+    "viem": "^2.20.1",
     "wagmi": "^2.12.7"
   },
   "devDependencies": {
     "@types/node": "22.5.0",
     "@types/react": "18.3.4",
     "@types/react-dom": "^18",
+    "@types/rss": "^0.0.32",
     "eslint": "^8",
     "eslint-config-next": "14.2.6",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "5.5.4"
+    "typescript": "^5.5.4"
   }
 }

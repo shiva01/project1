@@ -1,7 +1,6 @@
+import 'isomorphic-fetch';
 
-import type { NextApiRequest, NextApiResponse } from 'next';
-
-interface FeedItem {
+export interface FeedItem {
     uuid: string;
     abstract: string;
     author_name: string;
@@ -28,27 +27,21 @@ interface ApiResponse {
     };
 }
 
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse,
-    
-) {
-    const { page = '1', page_size = '20'  } = req.query;
-
-    const url = `https://api.chainfeeds.xyz/feed/searchv2?page=${page}&page_size=${page_size}&query=${key_word}&sort_type=score&article_type=1`;
+export async function scrapeData(page: string = '1', pageSize: string = '20'): Promise<FeedItem[]> {
+    const url = `https://api.chainfeeds.xyz/feed/searchv2?page=${page}&page_size=${pageSize}&query=degen&sort_type=score&article_type=1`;
 
     try {
         const response = await fetch(url);
         const data: ApiResponse = await response.json();
 
-        // 获取list[0]中的数据
         if (data.data.list.length > 0) {
-            const firstItem = data.data.list[0];
-            res.status(200).json(firstItem);
+            return data.data.list;
         } else {
-            res.status(404).json({ error: 'No data found' });
+            console.log('No data found');
+            return [];
         }
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        console.error('Error scraping data:', error);
+        return [];
     }
 }
