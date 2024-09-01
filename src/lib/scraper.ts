@@ -1,47 +1,90 @@
 import 'isomorphic-fetch';
 
-export interface FeedItem {
-    uuid: string;
-    abstract: string;
-    author_name: string;
-    author_title: string;
-    avatar_url: string;
-    banner: string;
-    is_star: number;
-    link_source: {
-        name: string;
-        link: string;
-    };
-    show_time: string;
-    source_url: string;
-    tags: string[];
+export interface ArticlePreview {
     title: string;
-    type: number;
+    blurb: string;
+    hreflangs: {
+        hreflang: string;
+        path: string;
+    }[];
 }
 
-interface ApiResponse {
+export interface ApiResponse {
     data: {
-        total_count: number;
-        total_page: number;
-        list: FeedItem[];
+      articlePreviews: {
+        data: ArticlePreview[];
+        meta: {
+          pagination: {
+            total: number;
+            pageSize: number;
+            page: number;
+            pageCount: number;
+          };
+        };
+      };
     };
-}
+  }
 
-export async function scrapeData(page: string = '1', pageSize: string = '20'): Promise<FeedItem[]> {
-    const url = `https://api.chainfeeds.xyz/feed/searchv2?page=${page}&page_size=${pageSize}&query=degen&sort_type=score&article_type=1`;
-
+  export async function scrapeData(query: string = 'degen', pageSize: number = 10): Promise<ArticlePreview[]> {
+    const url = 'https://gateway.decrypt.co/';
+    
+    const variables = {
+      filters: {
+        locale: { eq: "en" },
+        or: [
+          { title: { contains: query } },
+          { excerpt: { contains: query } },
+          { content: { contains: query } }
+        ]
+      },
+      pagination: { pageSize },
+      sort: ["_score:desc"]
+    };
+  
+    const operationName = 'ArticlePreviews';
+    const extensions = {
+      persistedQuery: {
+        version: 1,
+        sha256Hash: "7366f3114618c1df3a4b718a7b3e6f93cb804c036a907f52a75b108d9645618f"
+      }
+    };
+  
     try {
-        const response = await fetch(url);
-        const data: ApiResponse = await response.json();
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          operationName,
+          variables,
+          extensions
+        })
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log('API response:', JSON.stringify(data, null, 2));
 
-        if (data.data.list.length > 0) {
-            return data.data.list;
-        } else {
-            console.log('No data found');
-            return [];
-        }
-    } catch (error) {
-        console.error('Error scraping data:', error);
+
+      const articles = data.data?.articles?.data || [];
+
+      if (articles.length > 0) {
+        console.log(`Successfully scraped ${articles.length} articles`);
+        return articles.map((article: any) => ({
+          title: article.title,
+          blurb: article.blurb,
+          hreflangs: article.hreflangs[0]
+        }));
+      } else {
+        console.log('No articles found');
         return [];
+      }
+    } catch (error) {
+      console.error('Error scraping data:', error);
+      return [];
     }
-}
+  }
