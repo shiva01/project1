@@ -67,7 +67,7 @@ export interface ApiResponse {
       }
   
       const data = await response.json();
-      console.log('API response:', JSON.stringify(data, null, 2));
+    //   console.log('API response:', JSON.stringify(data, null, 2));
 
 
       const articles = data.data?.articles?.data || [];
