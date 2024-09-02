@@ -3,10 +3,7 @@ import 'isomorphic-fetch';
 export interface ArticlePreview {
     title: string;
     blurb: string;
-    hreflangs: {
-        hreflang: string;
-        path: string;
-    }[];
+    path: string;
 }
 
 export interface ApiResponse {
@@ -67,18 +64,21 @@ export interface ApiResponse {
       }
   
       const data = await response.json();
-    //   console.log('API response:', JSON.stringify(data, null, 2));
+      console.log('API response:', JSON.stringify(data, null, 2));
 
 
       const articles = data.data?.articles?.data || [];
 
       if (articles.length > 0) {
         console.log(`Successfully scraped ${articles.length} articles`);
-        return articles.map((article: any) => ({
+        const processedArticles = articles.map((article: any) => ({
           title: article.title,
           blurb: article.blurb,
-          hreflangs: article.hreflangs[0]
+          path: article.meta.hreflangs[0].path
         }));
+        console.log('Processed articles:', JSON.stringify(processedArticles, null, 2));
+        return processedArticles;
+
       } else {
         console.log('No articles found');
         return [];
