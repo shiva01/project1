@@ -24,17 +24,20 @@ const config1 = getDefaultConfig({
 const queryClient = new QueryClient()
 
 export default function Home() {
+  
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <React.StrictMode>
-    <WagmiProvider config={config1}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>
+    <main className="flex min-h-screen flex-col items-center justify-between">
+      <div className="w-full h-[500px] bg-gray-200 animate-pulse">
+      <React.StrictMode>
+        <WagmiProvider config={config1}>
+          <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider locale="en-US">
         <Component />
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
     </React.StrictMode>,
+    </div>
     </main>
   );
 }

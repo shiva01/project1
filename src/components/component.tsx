@@ -28,32 +28,17 @@ import { useEffect, useState, useRef } from 'react'
 import {
   ConnectButton
 } from '@rainbow-me/rainbowkit';
-
-// step1: import the groupfi-chatbox-sdk package.
 import ChatboxSDK from 'groupfi-chatbox-sdk'
-// step2: import the groupfi-chatbox-sdk style file.
 import 'groupfi-chatbox-sdk/dist/esm/assets/style.css'
-import { scrapeData, FeedItem } from '../lib/scraper';
-
-console.log(process.env.NEXT_PUBLIC_GROUPID_LIST)
+import { scrapeData, ArticlePreview } from '../lib/scraper';
 
 export function Component() {
-
-  // 接入chatbox 
   const account = useAccount()
-  const {status, error } = useConnect()
-  // step3: create a variable to track if the chatbox is ready.
   const [isChatboxReady, setIsChatboxReady] = useState(false)
-
-  // step4: create a variable to store the wallet provider.
   const [walletProvider, setWalletProvider] = useState<
     undefined | null | unknown
   >(undefined)
-
-  // step5: since getting provider is an asynchronous operation,
-  // use a variable to store whether the provider is currently being getted.
   const isGettingWalletProvider = useRef(false)
- // Handle chatbox ready event
   useEffect(() => {
     console.log("useEffect triggered")
     console.log("Component rendered");
@@ -70,7 +55,6 @@ export function Component() {
           } 
           console.log("params",recommendGroupIdList)
 
-      // step6: Once the chatbox is ready, set the recommended groups here.
       ChatboxSDK.request({
         method: 'setGroups',
         params: {
@@ -78,9 +62,8 @@ export function Component() {
         }
       })
 
-    }
+    } 
 
-    // Listen to chatbox ready event
     ChatboxSDK.events.on('chatbox-ready', handleChatboxReady)
 
     return () => {
@@ -117,15 +100,15 @@ export function Component() {
 
     const isWalletConnected = walletProvider !== null
 
-    // step7: execute loadChatbox api or processWallet api
-    // (1) If chatbox is not ready, execute the loadChatbox api.
+    // execute loadChatbox api or processWallet api
+    // If chatbox is not ready, execute the loadChatbox api.
     if (!isChatboxReady) {
       ChatboxSDK.loadChatbox({
         isWalletConnected,
         provider: walletProvider ?? undefined
       })
     } else {
-      // (2) If chatbox is ready, execute processWallet api
+      // If chatbox is ready, execute processWallet api
       ChatboxSDK.processWallet({
         isWalletConnected,
         provider: walletProvider ?? undefined
@@ -140,28 +123,52 @@ export function Component() {
       isChatboxReady &&
       account.address !== undefined
     ) {
-      // step7: specify the address for the chatbox to load.
+      // specify the address for the chatbox to load.
       ChatboxSDK.processAccount({
         account: account.address
       })
     }
   }, [isChatboxReady, walletProvider, account.address])
 
-  // 将爬取的数据传输至页面
+  const [articles, setArticles] = useState<ArticlePreview[]>([]);
+  const [currentToken, setCurrentToken] = useState<string>('degen');
+  const [groupId111, setGroupId] = useState<string>('groupfiDEGENcrabe2b86567396c9fd104f9d81545494131217f2ff264309d10c8d9a0198abd2bfb');
 
-  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  useEffect(() => {
+    async function fetchArticles(token: string) {
+      try {
+        const data = await scrapeData(token);
+        console.log('Fetched and processed articles:', JSON.stringify(data, null, 2));
+        setArticles(data);
+      } catch (error) {
+        console.error("Error fetching articles:", error);
+      }
+    }
 
-    useEffect(() => {
-        async function fetchData() {
-            const items = await scrapeData();
-            setFeedItems(items);
-        }
-        fetchData();
-    }, []);
+    fetchArticles(currentToken);
+  }, [currentToken]);
+
+
+
+  const handleTokenClick = (token: string, groupId: string) => {
+    setCurrentToken(token);
+    setGroupId(groupId);
+
+  }
+
+  useEffect(() => {
+    // 动态设置 Group
+    ChatboxSDK.request({
+      method: 'setGroups',
+      params: {
+        includes: [{ groupId: groupId111 }]
+      }
+    });
+  }, [groupId111]);
 
 
   return (
-
+    // head
     <div className="flex h-screen w-full flex-col">
       <header className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -169,22 +176,29 @@ export function Component() {
           <h1 className="text-xl font-bold">Token News</h1>
         </div>
         <div className="flex items-center gap-2">
-
         <Button className="flex items-center gap-2">
           <ConnectButton />
             </Button>
-
         </div>
       </header>
-      <div className="flex-1 flex">
+
+      <div className="flex-1 flex justify-center">
         <div className="bg-muted/20 border-r p-4 w-64 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-medium">Token List</h2>
           </div>
           <nav className="flex flex-col gap-2">
-            <Link href="#" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted" prefetch={false}>
-              <HomeIcon className="h-5 w-5" />
+            <Link href="#" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted" prefetch={false} onClick={() => handleTokenClick('degen', 'groupfiDEGENcrabe2b86567396c9fd104f9d81545494131217f2ff264309d10c8d9a0198abd2bfb')}>
               <span>Degen</span>
+            </Link>
+            <Link href="#" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted" prefetch={false} onClick={() => handleTokenClick('pepe', 'groupfiPEPEcrab1dc67c5f01ced4af90bcd6180c9d99d123e916ba1d57275ae8402307d4dd2226')}>
+              <span>Pepe</span>
+            </Link>
+            <Link href="#" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted" prefetch={false} onClick={() => handleTokenClick('meme', 'groupfiMEMEcrabe970675cca3c4cf389b850095a36898cf50738d562fe51cd196b56c5340585e8')}>
+              <span>Meme</span>
+            </Link>
+            <Link href="#" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted" prefetch={false} onClick={() => handleTokenClick('wld', 'groupfiWLDcrab68487d9c7a5cb78821151564a155a99da41bca5daf2fcec882f2d7a6ece4e96f')}>
+              <span>WLD</span>
             </Link>
           </nav>
         </div>
@@ -195,290 +209,35 @@ export function Component() {
             </div>
           </div>
           <div className="flex-1 overflow-auto p-4 grid gap-4">
-            <Card className="bg-background border rounded-lg overflow-hidden">
-              <CardHeader className="flex items-center gap-4 p-4 border-b">
-                <Avatar className="w-10 h-10 border">
-                  <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-              </CardHeader>
               <CardContent>
-              (
-    <div className="bg-gray-900 text-white p-4 space-y-4">
-      <div className="flex space-x-4">
-        <Button variant="default" className="bg-blue-600 text-white">
-          精选
-        </Button>
-        <Button variant="ghost" className="text-gray-400">
-          快讯
-        </Button>
-      </div>
-      <div className="space-y-4">
-        <Card className="bg-gray-800 p-4 space-y-2">
-          <div className="flex items-center space-x-2">
-            <NewspaperIcon className="w-6 h-6 text-blue-500" />
-            <div>
-              {feedItems.map(item => (
-                <div key={item.uuid}>
-                  <h2 className="text-lg font-semibold">{item.title}</h2>
-                  <p className="text-sm text-gray-400">{item.abstract}</p>
-                  {/* 添加更多你想展示的数据 */}
-                  <span className="text-sm text-gray-400">链捕手 • 9 分钟前</span>
-                </div>
-              ))}
-            </div>
-            </div>
-          </Card>
-        </div>
-    </div>
+                <div className="flex-1 overflow-auto p-4 grid gap-4">
+            {articles.map((article, index) => (
+              <Card key={index} className="bg-background border rounded-lg overflow-hidden">
+                <CardHeader className="flex items-center gap-4 p-4 border-b">
+                  <div>
+                    <h3 className="font-semibold">{article.title}</h3>
+                    {/* <p className="text-sm text-muted-foreground">{new Date(item.publishedAt).toLocaleDateString()}</p> */}
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <p>{article.blurb}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
               </CardContent>
-              <CardFooter className="flex items-center justify-between p-4 border-t">
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon">
-                    <HeartIcon className="h-5 w-5" />
-                    <span className="sr-only">Like</span>
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <MessageCircleIcon className="h-5 w-5" />
-                    <span className="sr-only">Comment</span>
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <ShareIcon className="h-5 w-5" />
-                    <span className="sr-only">Share</span>
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon">
-                    <BookmarkIcon className="h-5 w-5" />
-                    <span className="sr-only">Save</span>
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
           </div>
         </div>
         <div className="bg-muted/20 border-l p-4 w-64 flex flex-col gap-4">
           <div className="flex items-center justify-between">
           </div>
-          <div>{status}</div>
-          <div>{error?.message}</div>
         </div>
       </div>
     </div>
   )
 }
 
-function BookmarkIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-    </svg>
-  )
-}
 
-
-function BriefcaseIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-      <rect width="20" height="14" x="2" y="6" rx="2" />
-    </svg>
-  )
-}
-
-
-function ClubIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M17.28 9.05a5.5 5.5 0 1 0-10.56 0A5.5 5.5 0 1 0 12 17.66a5.5 5.5 0 1 0 5.28-8.6Z" />
-      <path d="M12 17.66L12 22" />
-    </svg>
-  )
-}
-
-
-function ComputerIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="14" height="8" x="5" y="2" rx="2" />
-      <rect width="20" height="8" x="2" y="14" rx="2" />
-      <path d="M6 18h2" />
-      <path d="M12 18h6" />
-    </svg>
-  )
-}
-
-
-function FilterIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-    </svg>
-  )
-}
-
-
-function HeartIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-    </svg>
-  )
-}
-
-
-function HomeIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
-  )
-}
-
-
-function ListOrderedIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="10" x2="21" y1="6" y2="6" />
-      <line x1="10" x2="21" y1="12" y2="12" />
-      <line x1="10" x2="21" y1="18" y2="18" />
-      <path d="M4 6h1v4" />
-      <path d="M4 10h2" />
-      <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" />
-    </svg>
-  )
-}
-
-
-function MessageCircleIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-    </svg>
-  )
-}
-
-
-function MoveHorizontalIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="18 8 22 12 18 16" />
-      <polyline points="6 8 2 12 6 16" />
-      <line x1="2" x2="22" y1="12" y2="12" />
-    </svg>
-  )
-}
 
 
 function NewspaperIcon(props) {
@@ -503,111 +262,3 @@ function NewspaperIcon(props) {
   )
 }
 
-
-function PaletteIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
-      <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
-      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
-      <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
-      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
-    </svg>
-  )
-}
-
-
-function PlusIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12h14" />
-      <path d="M12 5v14" />
-    </svg>
-  )
-}
-
-
-function SearchIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  )
-}
-
-
-function WalletIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
-      <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
-    </svg>
-  )
-}
-
-
-function ShareIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-      <polyline points="16 6 12 2 8 6" />
-      <line x1="12" x2="12" y1="2" y2="15" />
-    </svg>
-  )
-}
