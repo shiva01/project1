@@ -240,7 +240,7 @@ export function Component() {
 
 
 
-function NewspaperIcon(props) {
+function NewspaperIcon(props: any) {
   return (
     <svg
       {...props}
