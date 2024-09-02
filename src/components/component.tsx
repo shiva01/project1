@@ -18,6 +18,8 @@ To read more about using these font, please visit the Next.js documentation:
 - Pages Directory: https://nextjs.org/docs/pages/building-your-application/optimizing/fonts
 **/
 
+
+
 import '@rainbow-me/rainbowkit/styles.css';
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -166,7 +168,12 @@ export function Component() {
       }
     });
   }, [groupId111]);
-
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // 这里可以安全地使用 localStorage
+      localStorage.setItem('key', 'value');
+    }
+  }, []);
 
   return (
     // head
