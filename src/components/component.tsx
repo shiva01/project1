@@ -21,9 +21,8 @@ To read more about using these font, please visit the Next.js documentation:
 import '@rainbow-me/rainbowkit/styles.css';
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { useAccount, useConnect } from 'wagmi'
+import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import { useAccount } from 'wagmi'
 import { useEffect, useState, useRef } from 'react'
 import {
   ConnectButton
@@ -31,6 +30,8 @@ import {
 import ChatboxSDK from 'groupfi-chatbox-sdk'
 import 'groupfi-chatbox-sdk/dist/esm/assets/style.css'
 import { scrapeData, ArticlePreview } from '../lib/scraper';
+import { SVGProps } from 'react';
+
 
 export function Component() {
   const account = useAccount()
@@ -240,7 +241,7 @@ export function Component() {
 
 
 
-function NewspaperIcon(props: any) {
+function NewspaperIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
