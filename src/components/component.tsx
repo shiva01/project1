@@ -168,12 +168,7 @@ export function Component() {
       }
     });
   }, [groupId111]);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      // 这里可以安全地使用 localStorage
-      localStorage.setItem('key', 'value');
-    }
-  }, []);
+
 
   return (
     // head
@@ -205,9 +200,9 @@ export function Component() {
             <Link href="#" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted" prefetch={false} onClick={() => handleTokenClick('meme', 'groupfiMEMEcrabe970675cca3c4cf389b850095a36898cf50738d562fe51cd196b56c5340585e8')}>
               <span>Meme</span>
             </Link>
-            <Link href="#" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted" prefetch={false} onClick={() => handleTokenClick('wld', 'groupfiWLDcrab68487d9c7a5cb78821151564a155a99da41bca5daf2fcec882f2d7a6ece4e96f')}>
+            {/* <Link href="#" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted" prefetch={false} onClick={() => handleTokenClick('wld', 'groupfiWLDcrab68487d9c7a5cb78821151564a155a99da41bca5daf2fcec882f2d7a6ece4e96f')}>
               <span>WLD</span>
-            </Link>
+            </Link> */}
           </nav>
         </div>
         <div className="flex-1 flex flex-col">
