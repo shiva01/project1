@@ -138,44 +138,23 @@ export function Component() {
   const [groupId111, setGroupId] = useState<string>('groupfiDEGENcrabe2b86567396c9fd104f9d81545494131217f2ff264309d10c8d9a0198abd2bfb');
 
   useEffect(() => {
-    const storage = {
-      getItem: (key: string) => {
-        if (typeof window !== 'undefined') {
-          return localStorage.getItem(key);
-        }
-        return null;
-      },
-      setItem: (key: string, value: string) => {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(key, value);
-        }
-      },
-    };
 
     async function fetchArticles(token: string) {
       try {
-        // 首先尝试从 storage 获取数据
-        const cachedData = storage.getItem(`articles_${token}`);
-        if (cachedData) {
-          setArticles(JSON.parse(cachedData));
-          return;
-        }
-
-        // 如果没有缓存数据，则从 API 获取
         const data = await scrapeData(token);
         console.log('Fetched and processed articles:', JSON.stringify(data, null, 2));
         setArticles(data);
-
-        // 将获取的数据存储到 storage
-        storage.setItem(`articles_${token}`, JSON.stringify(data));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('data', JSON.stringify(data));
+      }
       } catch (error) {
         console.error("Error fetching articles:", error);
       }
     }
 
+
     fetchArticles(currentToken);
   }, [currentToken]);
-
 
 
 
