@@ -144,9 +144,7 @@ export function Component() {
         const data = await scrapeData(token);
         console.log('Fetched and processed articles:', JSON.stringify(data, null, 2));
         setArticles(data);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('data', JSON.stringify(data));
-      }
+
       } catch (error) {
         console.error("Error fetching articles:", error);
       }
