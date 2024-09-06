@@ -10,7 +10,7 @@ import {
 } from '@rainbow-me/rainbowkit';
 import ChatboxSDK from 'groupfi-chatbox-sdk'
 import 'groupfi-chatbox-sdk/dist/esm/assets/style.css'
-import { scrapeData, ArticlePreview } from '../lib/scraper';
+import { ArticlePreview } from '../lib/scraper';
 import { SVGProps } from 'react';
 
 export function ComponentClient() {
@@ -109,7 +109,9 @@ export function ComponentClient() {
   useEffect(() => {
     async function fetchArticles(token: string) {
       try {
-        const data = await scrapeData(token);
+        const response = await fetch(`/api/scrape?token=${token}`);
+        console.log('1111', response);
+        const data = await response.json();
         console.log('Fetched and processed articles:', JSON.stringify(data, null, 2));
         setArticles(data);
       } catch (error) {
