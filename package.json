@@ -25,7 +25,7 @@
     "groupfi-chatbox-sdk": "^0.0.5",
     "isomorphic-fetch": "^3.0.0",
     "lucide-react": "^0.436.0",
-    "next": "14.2.6",
+    "next": "^14.2.6",
     "node-fetch": "^3.3.2",
     "opmlparser": "^0.8.0",
     "pino-pretty": "^11.2.2",
