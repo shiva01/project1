@@ -32,6 +32,7 @@ export function Component() {
   >(undefined)
   const isGettingWalletProvider = useRef(false)
   useEffect(() => {
+    if (typeof window !== 'undefined') {
     console.log("useEffect triggered")
     console.log("Component rendered");
 
@@ -60,11 +61,12 @@ export function Component() {
 
     return () => {
       ChatboxSDK.events.off('chatbox-ready', handleChatboxReady)
-    }
+    }}
   }, [])
 
   // Try get wallet Provider from account connector
   useEffect(() => {
+    if (typeof window !== 'undefined') {
     const asyncTryGetWalletProvider = async () => {
       try {
         if (account.connector === undefined) {
@@ -82,10 +84,12 @@ export function Component() {
       }
     }
     asyncTryGetWalletProvider()
+  }
   }, [account.connector])
 
   // Call the loadChatbox api or the processWallet api based on the walletProvider.
   useEffect(() => {
+    if (typeof window !== 'undefined') {
     if (walletProvider === undefined) {
       return
     }
@@ -106,9 +110,11 @@ export function Component() {
         provider: walletProvider ?? undefined
       })
     }
+  }
   }, [walletProvider, isChatboxReady])
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
     if (
       !isGettingWalletProvider.current &&
       walletProvider &&
@@ -120,6 +126,7 @@ export function Component() {
         account: account.address
       })
     }
+  }
   }, [isChatboxReady, walletProvider, account.address])
 
   
@@ -129,18 +136,15 @@ export function Component() {
   const [groupId111, setGroupId] = useState<string>('groupfiDEGENcrabe2b86567396c9fd104f9d81545494131217f2ff264309d10c8d9a0198abd2bfb');
 
   useEffect(() => {
-
     async function fetchArticles(token: string) {
       try {
         const data = await scrapeData(token);
         console.log('Fetched and processed articles:', JSON.stringify(data, null, 2));
         setArticles(data);
-
       } catch (error) {
         console.error("Error fetching articles:", error);
       }
     }
-
 
     fetchArticles(currentToken);
   }, [currentToken]);
@@ -154,6 +158,7 @@ export function Component() {
   }
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
     // 动态设置 Group
     ChatboxSDK.request({
       method: 'setGroups',
@@ -161,6 +166,7 @@ export function Component() {
         includes: [{ groupId: groupId111 }]
       }
     });
+  }
   }, [groupId111]);
 
 
@@ -194,7 +200,6 @@ export function Component() {
             <Link href="#" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted" prefetch={false} onClick={() => handleTokenClick('meme', 'groupfiMEMEcrabe970675cca3c4cf389b850095a36898cf50738d562fe51cd196b56c5340585e8')}>
               <span>Meme</span>
             </Link>
- 
           </nav>
         </div>
         <div className="flex-1 flex flex-col">
