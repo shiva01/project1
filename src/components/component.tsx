@@ -4,22 +4,6 @@
 * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
 */
 'use client';
-/** Add fonts into your Next.js project:
-
-import { Inter } from 'next/font/google'
-
-inter({
-  subsets: ['latin'],
-  display: 'swap',
-})
-
-To read more about using these font, please visit the Next.js documentation:
-- App Directory: https://nextjs.org/docs/app/building-your-application/optimizing/fonts
-- Pages Directory: https://nextjs.org/docs/pages/building-your-application/optimizing/fonts
-**/
-
-
-
 import '@rainbow-me/rainbowkit/styles.css';
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -36,6 +20,11 @@ import { SVGProps } from 'react';
 
 
 export function Component() {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const account = useAccount()
   const [isChatboxReady, setIsChatboxReady] = useState(false)
   const [walletProvider, setWalletProvider] = useState<
@@ -132,6 +121,8 @@ export function Component() {
       })
     }
   }, [isChatboxReady, walletProvider, account.address])
+
+  
 
   const [articles, setArticles] = useState<ArticlePreview[]>([]);
   const [currentToken, setCurrentToken] = useState<string>('degen');

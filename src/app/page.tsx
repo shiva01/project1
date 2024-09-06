@@ -1,5 +1,5 @@
 "use client"
-import { Component } from '../components/component';
+// import { Component } from '../components/component';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
 import { WagmiProvider } from 'wagmi'
@@ -19,9 +19,16 @@ const config1 = getDefaultConfig({
   appName: 'TokenNews',
   projectId: '050fb102ca80a9399c33be00cee53dcd',
   chains: [mainnet, polygon, optimism, arbitrum, base],
-  ssr: true, // If your dApp uses server side rendering (SSR)
+  ssr: false, // If your dApp uses server side rendering (SSR)
 });
 const queryClient = new QueryClient()
+import dynamic from 'next/dynamic'
+
+
+const ComponentUsingLocalStorage = dynamic(
+  () => import('../components/component').then(mod => mod.Component),
+  { ssr: false }
+)
 
 export default function Home() {
   
@@ -32,7 +39,7 @@ export default function Home() {
         <WagmiProvider config={config1}>
           <QueryClientProvider client={queryClient}>
         <RainbowKitProvider locale="en-US">
-        <Component />
+        <ComponentUsingLocalStorage />
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
