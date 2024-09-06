@@ -20,10 +20,6 @@ import { SVGProps } from 'react';
 
 
 export function Component() {
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const account = useAccount()
   const [isChatboxReady, setIsChatboxReady] = useState(false)
@@ -32,7 +28,6 @@ export function Component() {
   >(undefined)
   const isGettingWalletProvider = useRef(false)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
     console.log("useEffect triggered")
     console.log("Component rendered");
 
@@ -61,12 +56,11 @@ export function Component() {
 
     return () => {
       ChatboxSDK.events.off('chatbox-ready', handleChatboxReady)
-    }}
+    }
   }, [])
 
   // Try get wallet Provider from account connector
   useEffect(() => {
-    if (typeof window !== 'undefined') {
     const asyncTryGetWalletProvider = async () => {
       try {
         if (account.connector === undefined) {
@@ -84,12 +78,11 @@ export function Component() {
       }
     }
     asyncTryGetWalletProvider()
-  }
+
   }, [account.connector])
 
   // Call the loadChatbox api or the processWallet api based on the walletProvider.
   useEffect(() => {
-    if (typeof window !== 'undefined') {
     if (walletProvider === undefined) {
       return
     }
@@ -110,11 +103,10 @@ export function Component() {
         provider: walletProvider ?? undefined
       })
     }
-  }
+  
   }, [walletProvider, isChatboxReady])
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
     if (
       !isGettingWalletProvider.current &&
       walletProvider &&
@@ -126,7 +118,7 @@ export function Component() {
         account: account.address
       })
     }
-  }
+  
   }, [isChatboxReady, walletProvider, account.address])
 
   
@@ -158,7 +150,6 @@ export function Component() {
   }
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
     // 动态设置 Group
     ChatboxSDK.request({
       method: 'setGroups',
@@ -166,7 +157,7 @@ export function Component() {
         includes: [{ groupId: groupId111 }]
       }
     });
-  }
+  
   }, [groupId111]);
 
 
