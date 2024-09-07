@@ -11,7 +11,6 @@ export async function GET(request: Request) {
 
   try {
     const data = await scrapeData(token);
-    console.log('爬取的数据:', data);
     
     return NextResponse.json(data);
   } catch (error) {
