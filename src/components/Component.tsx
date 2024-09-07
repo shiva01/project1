@@ -64,7 +64,7 @@ export function Component() {
 
   }, [account.connector])
 
-  // Call the loadChatbox api or the processWallet api based on the walletProvider.
+  // Call the loadChatbox api or the processWallet api based on the walletProvider
   useEffect(() => {
     if (walletProvider === undefined) {
       return
@@ -72,15 +72,14 @@ export function Component() {
 
     const isWalletConnected = walletProvider !== null
 
-    // execute loadChatbox api or processWallet api
-    // If chatbox is not ready, execute the loadChatbox api.
+    // Call loadChatbox() to start
     if (!isChatboxReady) {
       ChatboxSDK.loadChatbox({
         isWalletConnected,
         provider: walletProvider ?? undefined
       })
     } else {
-      // If chatbox is ready, execute processWallet api
+      // Call processWallet() when the status of wallet has changed
       ChatboxSDK.processWallet({
         isWalletConnected,
         provider: walletProvider ?? undefined
@@ -111,7 +110,6 @@ export function Component() {
       try {
         const response = await fetch(`/api/scrape?token=${token}`);
         const data = await response.json();
-        console.log('Fetched and processed articles:', JSON.stringify(data, null, 2));
         setArticles(data);
       } catch (error) {
         console.error("Error fetching articles:", error);

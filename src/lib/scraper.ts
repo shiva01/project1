@@ -76,7 +76,6 @@ export interface ApiResponse {
           blurb: article.blurb,
           path: article.meta.hreflangs[0].path
         }));
-        console.log('Processed articles:', JSON.stringify(processedArticles, null, 2));
         return processedArticles;
 
       } else {

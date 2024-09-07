@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const token = searchParams.get('token');
 
   if (!token) {
-    return NextResponse.json({ error: '缺少 token 参数' }, { status: 400 });
+    return NextResponse.json({ error: 'lack token parateter' }, { status: 400 });
   }
 
   try {
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     
     return NextResponse.json(data);
   } catch (error) {
-    console.error('爬取过程中出错:', error);
-    return NextResponse.json({ error: '爬取数据失败' }, { status: 500 });
+    console.error('failed to get the data:', error);
+    return NextResponse.json({ error: 'failed to get the data' }, { status: 500 });
   }
 }
