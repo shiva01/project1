@@ -30,7 +30,7 @@ export function Component() {
       ChatboxSDK.request({
         method: 'setGroups',
         params: {
-          includes: [{ groupId: 'groupfiDEGENcrabe2b86567396c9fd104f9d81545494131217f2ff264309d10c8d9a0198abd2bfb' }]
+          includes: [{ groupId: 'groupfiETHGlobalSingaporePack9ba9067c82621a028e3576b2ef2982588f096601a5180cb57962fe3d434a4c96' }]
         }
       })
     } 
